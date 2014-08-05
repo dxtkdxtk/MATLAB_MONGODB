@@ -1,6 +1,6 @@
 /*****************************************************************************
  * File name: dbmain
- * Description: connect ctpdb
+ * Description: connect mongodb main entry
  * Author: jebin
  * Version: 0.1
  * Date: 2014/07/30
@@ -14,7 +14,10 @@
 #include <string>
 #include <set>
 #include <utility>
+
+using namespace std;
 using namespace mongo;
+using namespace bson;
 
 //连接总参数
 mongo::DBClientConnection *mCon;
@@ -35,7 +38,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[])
     int choise = (int)mxGetScalar(prhs[0]);
     switch(choise)
     {
-        
+        //连接数据库
         case 1:
         {
             try
@@ -61,12 +64,30 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[])
             }
             break;
         }
+        
+        //断开数据库
         case 2:
         {
             CheckIsConnect();
             delete mCon;
             mCon = NULL;
             mexPrintf("断开数据库成功\n");
+            break;
+        }
+        
+        //设置collection
+        case 3:
+        {
+            CheckIsConnect();
+            SetCollection(prhs[1]);
+            break;
+        }
+        
+        //获取tick数据
+        case 4:
+        {
+            CheckIsConnect();
+            plhs[0] = GetTick(prhs[1], prhs[2], prhs[3]);
             break;
         }
         default:
