@@ -8,7 +8,7 @@
  *****************************************************************************/
 #include "mex.h"
 #include "matrix.h"
-#include "mongo/client/dbclient.h"
+#include "mxMongoTool.h"
 
 #include <iostream>
 #include <string>
@@ -55,6 +55,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[])
             }
             catch (const mongo::DBException &e)
             {
+                delete mCon;
+                mCon = NULL;
                 mexErrMsgTxt("Á¬½Ó´íÎó!");
             }
             break;
