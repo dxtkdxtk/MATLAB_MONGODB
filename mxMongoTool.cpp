@@ -104,7 +104,6 @@ mxArray *GetInstrument(mxArray *inst)
     BSONObj p;
     while(cursor->more())
     {
-        mexPrintf("cursor call\n");
         if(i >= size)
         {
             mexWarnMsgTxt("tttttttttt");
