@@ -12,6 +12,7 @@ extern mongo::DBClientConnection *mCon;
 extern std::string mongoServer;
 extern std::string database;
 extern std::string collection;
+
 mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
 {
     mxArray *result;
@@ -31,7 +32,6 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
     BSONObj qry = b.obj();
     cursor = mCon->query(string("MarketData.") + collection, qry);
     int size = cursor->itcount();
-//     mexPrintf("数据长度%d, collection为%s\n", size, collection.c_str());
     mwSize dims[2] = {1, size};
     result = mxCreateStructArray(2, dims, sizeof(field_names)/sizeof(*field_names), field_names);
     cursor = mCon->query(string("MarketData.") + collection, qry);
@@ -39,9 +39,14 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
     int i = size - 1;
     while(cursor->more())
     {
+        if(i < 0)
+        {
+            mexWarnMsgTxt("查询范围在行情写入范围中\n");
+            break;
+        }
         p = cursor->next();
         tm buf;
-        //trun into peking time;
+        //turn into peking time;
         Date_t pkTime = Date_t(p["UpdateTime"].Date().millis + 8 * 3600000LL);
         double time = pkTime.millis%1000 / 100 / 100000.0;
         pkTime.toTm(&buf);
@@ -63,15 +68,69 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
         mxSetField(result, i, "bv1", mxCreateDoubleScalar(p["BidVolume1"].Int()));
         
         --i;
-        if(i < -1)
-        {
-            mexWarnMsgTxt("GetTick程序越界!");
-            break;
-        }
+        
     }
-    
     return result;
 }
+
+mxArray *GetInstrument(mxArray *inst)
+{
+    mxArray *result;
+    const char *field_names[] = {"InstrumentID", "ExchangeID", "InstrumentName", 
+                                                    "ProductID", "DeliveryYear", "DeliveryMonth", 
+                                                    "PriceTick", "CreateDate", "OpenDate", "ExpireDate", 
+                                                    "StartDelivDate", "EndDelivDate", "LongMarginRatio", "ShortMarginRatio"};
+    string instrument = mxArrayToString(inst);
+    auto_ptr<DBClientCursor> cursor;
+    BSONObjBuilder b;
+    int size = 0;
+    if(instrument.size() > 2)
+    {
+        b.append("InstrumentID", instrument);
+        cursor = mCon->query(string("MarketData.") + collection, b.obj());
+        size = 1;
+    }
+    else
+    {
+        b.append("ProductID", instrument);
+        BSONObj qry = b.obj();
+        cursor = mCon->query(string("MarketData.") + collection, qry);
+        size = cursor->itcount();
+        cursor = mCon->query(string("MarketData.") + collection, qry);
+    }
+    mwSize dims[2] = {1, size};
+    result = mxCreateStructArray(2, dims, sizeof(field_names)/sizeof(*field_names), field_names);
+    int i = 0;
+    BSONObj p;
+    while(cursor->more())
+    {
+        mexPrintf("cursor call\n");
+        if(i >= size)
+        {
+            mexWarnMsgTxt("tttttttttt");
+            break;
+        }
+        p = cursor->next();
+        mxSetField(result, i, "InstrumentID", mxCreateString(p["InstrumentID"].String().c_str()));
+        mxSetField(result, i, "ExchangeID", mxCreateString(p["ExchangeID"].String().c_str()));
+        mxSetField(result, i, "InstrumentName", mxCreateString(p["InstrumentName"].String().c_str()));
+        mxSetField(result, i, "ProductID", mxCreateString(p["ProductID"].String().c_str()));
+        mxSetField(result, i, "DeliveryYear", mxCreateDoubleScalar(p["DeliveryYear"].Int()));
+        mxSetField(result, i, "DeliveryMonth", mxCreateDoubleScalar(p["DeliveryMonth"].Int()));
+        mxSetField(result, i, "PriceTick", mxCreateDoubleScalar(p["PriceTick"].Double()));
+        mxSetField(result, i, "CreateDate", mxCreateString(p["CreateDate"].String().c_str()));
+        mxSetField(result, i, "OpenDate", mxCreateString(p["OpenDate"].String().c_str()));
+        mxSetField(result, i, "ExpireDate", mxCreateString(p["ExpireDate"].String().c_str()));
+        mxSetField(result, i, "StartDelivDate", mxCreateString(p["StartDelivDate"].String().c_str()));
+        mxSetField(result, i, "EndDelivDate", mxCreateString(p["EndDelivDate"].String().c_str()));
+        mxSetField(result, i, "LongMarginRatio", mxCreateDoubleScalar(p["LongMarginRatio"].Double()));
+        mxSetField(result, i, "ShortMarginRatio", mxCreateDoubleScalar(p["ShortMarginRatio"].Double()));
+
+        ++i;
+    }
+    return result;
+}
+
 void SetCollection(mxArray *coll)
 {
     collection = mxArrayToString(coll);
