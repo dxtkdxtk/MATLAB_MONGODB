@@ -97,6 +97,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[])
             plhs[0] = GetInstrument(prhs[1]);
             break;
         }
+        case 6:
+        {
+            CheckIsConnect();
+            WriteBar(prhs[1]);
+            break;
+        }
         default:
             mexErrMsgTxt("没有找到相关操作");
             

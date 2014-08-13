@@ -36,10 +36,10 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
     result = mxCreateStructArray(2, dims, sizeof(field_names)/sizeof(*field_names), field_names);
     cursor = mCon->query(string("MarketData.") + collection, qry);
     BSONObj p;
-    int i = size - 1;
+    int i = 0;
     while(cursor->more())
     {
-        if(i < 0)
+        if(i >= size)
         {
             mexWarnMsgTxt("查询范围在行情写入范围中\n");
             break;
@@ -67,7 +67,7 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
         mxSetField(result, i, "av1", mxCreateDoubleScalar(p["AskVolume1"].Int()));
         mxSetField(result, i, "bv1", mxCreateDoubleScalar(p["BidVolume1"].Int()));
         
-        --i;
+        ++i;
         
     }
     return result;
@@ -106,7 +106,7 @@ mxArray *GetInstrument(mxArray *inst)
     {
         if(i >= size)
         {
-            mexWarnMsgTxt("tttttttttt");
+            mexWarnMsgTxt("查询时数据库正在写入合约信息");
             break;
         }
         p = cursor->next();
@@ -134,4 +134,26 @@ void SetCollection(mxArray *coll)
 {
     collection = mxArrayToString(coll);
     mexPrintf("collection已设置为%s\n", collection.c_str());
+}
+
+void WriteBar(mxArray *bar, mxArray *type)
+{
+    
+    int len = mxGetNumberOfElements(bar);
+    int min = mxGetScalar(type);
+    for(int i = 0; i < len; ++i)
+    {
+        BSONObjBuilder b;
+        b.append("instrument", mxArrayToString(mxGetField(bar, i, "instrument")));
+        b.appendDate("time", Date_t((long long)mxGetScalar(mxGetField(bar, i, "time")) ));
+        b.append("type", (int)mxGetScalar(mxGetField(bar, i, "type")));
+        b.append("o", mxGetScalar(mxGetField(bar, i, "o")));
+        b.append("h", mxGetScalar(mxGetField(bar, i, "h")));
+        b.append("l", mxGetScalar(mxGetField(bar, i, "l")));
+        b.append("c", mxGetScalar(mxGetField(bar, i, "c")));
+        b.append("v", mxGetScalar(mxGetField(bar, i, "v")));
+        b.append("i", mxGetScalar(mxGetField(bar, i, "i")));
+        mCon->insert(string("MarketData.") + collection, b.done());
+    }
+    
 }
