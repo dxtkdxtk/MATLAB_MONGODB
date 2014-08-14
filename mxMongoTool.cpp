@@ -136,11 +136,10 @@ void SetCollection(mxArray *coll)
     mexPrintf("collection“—…Ë÷√Œ™%s\n", collection.c_str());
 }
 
-void WriteBar(mxArray *bar, mxArray *type)
+void WriteBar(mxArray *bar)
 {
     
     int len = mxGetNumberOfElements(bar);
-    int min = mxGetScalar(type);
     for(int i = 0; i < len; ++i)
     {
         BSONObjBuilder b;
