@@ -103,6 +103,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[])
             WriteBar(prhs[1]);
             break;
         }
+        case 7: 
+        {
+            CheckIsConnect();
+            mexPrintf("that's ok con\n");
+            plhs[0] = GetBar(prhs[1], prhs[2], prhs[3], prhs[4]);
+            break;
+        }
         default:
             mexErrMsgTxt("没有找到相关操作");
             

@@ -19,6 +19,7 @@ using namespace mongo;
 using namespace bson;
 
 mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end);
+mxArray *GetBar(mxArray *inst, mxArray *tp, mxArray *start, mxArray *end);
 void SetCollection(mxArray *collection);
 mxArray *GetInstrument(mxArray *inst);
 void WriteBar(mxArray *bar);

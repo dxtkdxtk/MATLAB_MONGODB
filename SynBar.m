@@ -38,6 +38,7 @@ if(type == 1440)
         barlen = barlen + 1;
         bar(barlen).tradingday = tick(1).tradingday;
         bar(barlen).time = GenTimeStramp(type, isIF);
+        bar(barlen).instrument = tick(1).instrument;
         bar(barlen).o = tick(1).c;
         bar(barlen).h = max([tick.c]);
         bar(barlen).l = min([tick.c]);
@@ -56,6 +57,7 @@ else
             barlen = barlen + 1;
             bar(barlen).tradingday = tmptick(1).tradingday;
             bar(barlen).time = timeStramp(itime);
+            bar(barlen).instrument = tmptick(1).instrument;
             bar(barlen).o = tmptick(1).c;
             bar(barlen).h = max([tmptick.c]);
             bar(barlen).l = min([tmptick.c]);

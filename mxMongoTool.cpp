@@ -64,9 +64,71 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
         mxSetField(result, i, "i", mxCreateDoubleScalar(p["OpenInterest"].Double()));
         mxSetField(result, i, "a1", mxCreateDoubleScalar(p["AskPrice1"].Double()));
         mxSetField(result, i, "b1", mxCreateDoubleScalar(p["BidPrice1"].Double()));
-        mxSetField(result, i, "av1", mxCreateDoubleScalar(p["AskVolume1"].Int()));
-        mxSetField(result, i, "bv1", mxCreateDoubleScalar(p["BidVolume1"].Int()));
+        mxSetField(result, i, "av1", mxCreateDoubleScalar(p["AskVolume1"].Double()));
+        mxSetField(result, i, "bv1", mxCreateDoubleScalar(p["BidVolume1"].Double()));
         
+        ++i;
+        
+    }
+    return result;
+}
+
+mxArray *GetBar(mxArray *inst, mxArray *tp, mxArray *start, mxArray *end)
+{
+
+    mxArray *result;
+    const char *field_names[] = {"tradingday", "time", "instrument", "o", "h", "l", "c", "v", "i"};
+    
+    string instrument = mxArrayToString(inst);
+    int type = mxGetScalar(tp);
+    int st = mxGetScalar(start);
+    int et = mxGetScalar(end);
+    auto_ptr<DBClientCursor> cursor;
+    BSONObjBuilder b;
+    BSONObjBuilder timePeriod;
+
+    b.append("instrument", instrument);
+    b.append("type", type);
+    timePeriod.appendDate("$gte",( (st - 719529) * 24LL)* 60LL * 60LL * 1000LL + 3 * 3600000);
+    timePeriod.appendDate("$lte", ( (et - 719529 + 1) * 24LL) * 60LL * 60LL * 1000LL + 3 * 3600000);
+    b.append("time", timePeriod.done());
+    BSONObj qry = b.done();
+
+    cursor = mCon->query(string("MarketData.") + collection, qry);
+    int size = cursor->itcount();
+    mwSize dims[2] = {1, size};
+    result = mxCreateStructArray(2, dims, sizeof(field_names)/sizeof(*field_names), field_names);
+    cursor = mCon->query(string("MarketData.") + collection, qry);
+    BSONObj p;
+
+    int i = 0;
+    
+    while(cursor->more())
+    {
+        if(i >= size)
+        {
+            mexWarnMsgTxt("查询范围在行情写入范围中\n");
+            break;
+        }
+        p = cursor->next();
+        tm buf;
+
+        Date_t pkTime = Date_t(p["time"].Date().millis);
+        double time = pkTime.millis%1000 / 100 / 100000.0;
+        pkTime.toTm(&buf);
+        int day = (buf.tm_year + 1900) * 10000 + (buf.tm_mon + 1) * 100 + buf.tm_mday;
+        time = time + buf.tm_hour + buf.tm_min / 100.0 + buf.tm_sec / 10000.0;
+        
+        mxSetField(result, i, "tradingday", mxCreateDoubleScalar(day));
+        mxSetField(result, i, "time", mxCreateDoubleScalar(time));
+        mxSetField(result, i, "instrument", mxCreateString(instrument.c_str()));
+        mxSetField(result, i, "type", mxCreateDoubleScalar(type));
+        mxSetField(result, i, "o", mxCreateDoubleScalar( p["o"].Double() ));
+        mxSetField(result, i, "h", mxCreateDoubleScalar(p["h"].Double()));
+        mxSetField(result, i, "l", mxCreateDoubleScalar(p["l"].Double()));
+        mxSetField(result, i, "c", mxCreateDoubleScalar(p["c"].Double()));
+        mxSetField(result, i, "v", mxCreateDoubleScalar(p["v"].Double()));
+        mxSetField(result, i, "i", mxCreateDoubleScalar(p["i"].Double()));
         ++i;
         
     }
@@ -87,17 +149,23 @@ mxArray *GetInstrument(mxArray *inst)
     if(instrument.size() > 2)
     {
         b.append("InstrumentID", instrument);
-        cursor = mCon->query(string("MarketData.") + collection, b.obj());
+        cursor = mCon->query(string("MarketData.") + collection, b.done());
         size = 1;
+    }
+    else if(instrument.size() == 0)
+    {
+        size = mCon->count(string("MarketData.") + collection);
+        cursor = mCon->query(string("MarketData.") + collection, BSONObj());
     }
     else
     {
         b.append("ProductID", instrument);
-        BSONObj qry = b.obj();
+        BSONObj qry = b.done();
         cursor = mCon->query(string("MarketData.") + collection, qry);
         size = cursor->itcount();
         cursor = mCon->query(string("MarketData.") + collection, qry);
     }
+    
     mwSize dims[2] = {1, size};
     result = mxCreateStructArray(2, dims, sizeof(field_names)/sizeof(*field_names), field_names);
     int i = 0;
@@ -133,7 +201,6 @@ mxArray *GetInstrument(mxArray *inst)
 void SetCollection(mxArray *coll)
 {
     collection = mxArrayToString(coll);
-    mexPrintf("collection已设置为%s\n", collection.c_str());
 }
 
 void WriteBar(mxArray *bar)
@@ -154,5 +221,5 @@ void WriteBar(mxArray *bar)
         b.append("i", mxGetScalar(mxGetField(bar, i, "i")));
         mCon->insert(string("MarketData.") + collection, b.done());
     }
-    
 }
+
