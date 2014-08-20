@@ -77,7 +77,7 @@ mxArray *GetBar(mxArray *inst, mxArray *tp, mxArray *start, mxArray *end)
 {
 
     mxArray *result;
-    const char *field_names[] = {"tradingday", "time", "instrument", "o", "h", "l", "c", "v", "i"};
+    const char *field_names[] = {"tradingday", "time", "instrument", "type", "o", "h", "l", "c", "v", "i"};
     
     string instrument = mxArrayToString(inst);
     int type = mxGetScalar(tp);
