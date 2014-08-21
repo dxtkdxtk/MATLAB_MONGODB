@@ -64,8 +64,8 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
         mxSetField(result, i, "i", mxCreateDoubleScalar(p["OpenInterest"].Double()));
         mxSetField(result, i, "a1", mxCreateDoubleScalar(p["AskPrice1"].Double()));
         mxSetField(result, i, "b1", mxCreateDoubleScalar(p["BidPrice1"].Double()));
-        mxSetField(result, i, "av1", mxCreateDoubleScalar(p["AskVolume1"].Double()));
-        mxSetField(result, i, "bv1", mxCreateDoubleScalar(p["BidVolume1"].Double()));
+        mxSetField(result, i, "av1", mxCreateDoubleScalar(p["AskVolume1"].Int()));
+        mxSetField(result, i, "bv1", mxCreateDoubleScalar(p["BidVolume1"].Int()));
         
         ++i;
         
