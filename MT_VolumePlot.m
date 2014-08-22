@@ -10,7 +10,7 @@ len = length(Open);
 
 for i = 1:len
     if Close(i) >= Open(i)
-        bar(i,Vol(i),'w','EdgeColor','r');
+        bar(i,Vol(i),'r','EdgeColor','r');
         hold on;
     else
         bar(i,Vol(i),'g','EdgeColor','g');
