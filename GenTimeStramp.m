@@ -18,9 +18,9 @@ if(~isIF)
         result = [result,9 : min/100 : 9.599];
         result = [result,10 : min/100 : 10.149];
         result = [result,10.3 : min/100 : 10.599];
-        result = [result,11 : min/100 : 11.3];
+        result = [result,11 : min/100 : 11.299];
         result = [result,13.3 : min/100 : 13.599];
-        result = [result,14 : min/100 : 14.599, 15.00005];
+        result = [result,14 : min/100 : 14.599];
         result = [result,21 : min/100 : 21.599];
         result = [result,22 : min/100 : 22.599];
         result = [result,23 : min/100 : 23.599, 24];
@@ -40,10 +40,10 @@ else
     else
         result = [result,9.15 : min/100 : 9.599];
         result = [result,10 : min/100 : 10.599];
-        result = [result,11 : min/100 : 11.3];
+        result = [result,11 : min/100 : 11.299];
         result = [result,13 : min/100 : 13.599];
         result = [result,14 : min/100 : 14.599];
-        result = [result,15 : min/100 : 15.15005];
+        result = [result,15 : min/100 : 15.149, 15.150051];
     end
 end
 end
