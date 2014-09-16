@@ -1,7 +1,7 @@
 function connectdb(varargin)
 %CONNECTDB 连接数据库
 % server = 'localhost';
-server = '198.16.100.88';
+server = 'localhost';
 database = 'MarketData';
 if(nargin == 1)
     server = varargin{1};

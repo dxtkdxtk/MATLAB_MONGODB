@@ -1,5 +1,17 @@
-% connectdb;
-tick = GetTick('au1412', today - 1, today - 1);
+% connectdb('198.16.100.88');
+connectdb;
+Dir = 'F:\rawdata';
+list =  dir(Dir); 
+list = {list.name}';
 
-bar = SynBar(tick, 3);
-
+listlen = length(list);
+for i = 3:listlen
+    file = dir(fullfile(Dir, list{i}));
+    file = {file.name}';
+    filelen = length(file);
+    for j = 1:filelen
+        File = fullfile(Dir, list{i}, file{j});
+        disp(File);
+        WriteTick(File);
+    end
+end

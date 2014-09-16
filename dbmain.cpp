@@ -109,6 +109,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[])
             plhs[0] = GetBar(prhs[1], prhs[2], prhs[3], prhs[4]);
             break;
         }
+        case 8: 
+        {
+            CheckIsConnect();
+            bool ok = WriteTick(prhs[1]);
+            if(ok)
+            {
+                mexPrintf("写入tick成功\n");
+            }
+            else
+            {
+                mexPrintf("写入tick失败\n");
+            }
+            break;
+        }
         default:
             mexErrMsgTxt("没有找到相关操作");
             
