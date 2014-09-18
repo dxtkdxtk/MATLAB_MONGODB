@@ -33,3 +33,5 @@ mxArray *GetInstrument(mxArray *inst);
 void WriteBar(mxArray *bar);
 //写入tick
 bool WriteTick(mxArray *file);
+//按时间段删除tick
+void DeleteTick(mxArray *start, mxArray *end);

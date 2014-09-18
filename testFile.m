@@ -1,5 +1,5 @@
-% connectdb('198.16.100.88');
-connectdb;
+connectdb('198.16.100.88');
+% connectdb;
 Dir = 'F:\rawdata';
 list =  dir(Dir); 
 list = {list.name}';
@@ -10,6 +10,9 @@ for i = 3:listlen
     file = {file.name}';
     filelen = length(file);
     for j = 1:filelen
+        if(length(file{j}) < 17)
+            continue;
+        end
         File = fullfile(Dir, list{i}, file{j});
         disp(File);
         WriteTick(File);

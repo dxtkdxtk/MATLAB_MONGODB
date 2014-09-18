@@ -123,6 +123,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[])
             }
             break;
         }
+        case 9:
+        {
+            CheckIsConnect();
+            DeleteTick(prhs[1], prhs[2]);
+            break;
+        }
         default:
             mexErrMsgTxt("没有找到相关操作");
             

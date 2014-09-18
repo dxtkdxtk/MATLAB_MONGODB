@@ -42,8 +42,8 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
     BSONObjBuilder timePeriod;
     
     b.append("InstrumentID", instrument);
-    timePeriod.appendDate("$gte",( (st - 719529) * 24LL)* 60LL * 60LL * 1000LL);
-    timePeriod.appendDate("$lte", ( (et - 719529 + 1) * 24LL) * 60LL * 60LL * 1000LL);
+    timePeriod.appendDate("$gte",( (st - 719529) * 24LL - 12)* 60LL * 60LL * 1000LL);
+    timePeriod.appendDate("$lte", ( (et - 719529 + 1) * 24LL - 12) * 60LL * 60LL * 1000LL);
     b.append("UpdateTime", timePeriod.obj());
     BSONObj qry = b.obj();
     cursor = mCon->query(string("MarketData.") + collection, qry);
@@ -299,4 +299,17 @@ bool WriteTick(mxArray *file)
     }
     CloseHandle(hFile);
     return true;
+}
+
+void DeleteTick(mxArray *start, mxArray *end)
+{
+    int st = mxGetScalar(start);
+    int et = mxGetScalar(end);
+    auto_ptr<DBClientCursor> cursor;
+    BSONObjBuilder b;
+    BSONObjBuilder timePeriod;
+    timePeriod.appendDate("$gte",( (st - 719529) * 24LL - 12) * 60LL * 60LL * 1000LL);
+    timePeriod.appendDate("$lte", ( (et - 719529 + 1) * 24LL - 12) * 60LL * 60LL * 1000LL);
+    b.append("UpdateTime", timePeriod.done());
+    mCon->remove(string("MarketData.") + collection, b.done());
 }
