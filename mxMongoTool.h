@@ -34,4 +34,6 @@ void WriteBar(mxArray *bar);
 //写入tick
 bool WriteTick(mxArray *file);
 //按时间段删除tick
-void DeleteTick(mxArray *start, mxArray *end);
+void DeleteTick(mxArray *inst, mxArray *start, mxArray *end);
+//查询指定时间最后一根tick
+mxArray *GetLastTick(mxArray *inst, mxArray *end);

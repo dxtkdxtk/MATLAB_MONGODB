@@ -126,7 +126,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray *prhs[])
         case 9:
         {
             CheckIsConnect();
-            DeleteTick(prhs[1], prhs[2]);
+            DeleteTick(prhs[1], prhs[2], prhs[3]);
+            break;
+        }
+        
+        case 10:
+        {
+            CheckIsConnect();
+            plhs[0] = GetLastTick(prhs[1], prhs[2]);
             break;
         }
         default:

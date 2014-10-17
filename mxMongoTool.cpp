@@ -35,8 +35,8 @@ mxArray *GetTick(mxArray *inst, mxArray *start, mxArray *end)
     const char *field_names[] = {"tradingday", "time", "instrument", "o", "h", "l", "c", "v", "i", "a1", "b1", "av1", "bv1"};
     
     string instrument = mxArrayToString(inst);
-    int st = mxGetScalar(start);
-    int et = mxGetScalar(end);
+    double st = mxGetScalar(start);
+    double et = mxGetScalar(end);
     auto_ptr<DBClientCursor> cursor;
     BSONObjBuilder b;
     BSONObjBuilder timePeriod;
@@ -301,8 +301,9 @@ bool WriteTick(mxArray *file)
     return true;
 }
 
-void DeleteTick(mxArray *start, mxArray *end)
+void DeleteTick(mxArray *inst, mxArray *start, mxArray *end)
 {
+    string instrument = mxArrayToString(inst);
     int st = mxGetScalar(start);
     int et = mxGetScalar(end);
     auto_ptr<DBClientCursor> cursor;
@@ -311,5 +312,57 @@ void DeleteTick(mxArray *start, mxArray *end)
     timePeriod.appendDate("$gte",( (st - 719529) * 24LL - 12) * 60LL * 60LL * 1000LL);
     timePeriod.appendDate("$lte", ( (et - 719529 + 1) * 24LL - 12) * 60LL * 60LL * 1000LL);
     b.append("UpdateTime", timePeriod.done());
+    b.append("InstrumentID", instrument);
     mCon->remove(string("MarketData.") + collection, b.done());
+}
+
+
+mxArray *GetLastTick(mxArray *inst, mxArray *end)
+{
+    mxArray *result;
+    const char *field_names[] = {"tradingday", "time", "instrument", "o", "h", "l", "c", "v", "i", "a1", "b1", "av1", "bv1"};
+    
+    string instrument = mxArrayToString(inst);
+//     double st = mxGetScalar(start);
+    double et = mxGetScalar(end);
+    auto_ptr<DBClientCursor> cursor;
+    BSONObjBuilder b;
+    BSONObjBuilder timePeriod;
+    
+    b.append("InstrumentID", instrument);
+    timePeriod.appendDate("$lte", ( (et - 719529) * 24LL - 8) * 60LL * 60LL * 1000LL);
+    b.append("UpdateTime", timePeriod.obj());
+    Query qry = b.obj();
+    qry.sort("UpdateTime", -1);
+    cursor = mCon->query(string("MarketData.") + collection, qry);
+    mwSize dims[2] = {1, 1};
+    result = mxCreateStructArray(2, dims, sizeof(field_names)/sizeof(*field_names), field_names);
+    cursor = mCon->query(string("MarketData.") + collection, qry);
+    BSONObj p;
+    if(cursor->more())
+    {
+        p = cursor->next();
+        tm buf;
+        //turn into peking time;
+        Date_t pkTime = Date_t(p["UpdateTime"].Date().millis + 8 * 3600000LL);
+        double time = pkTime.millis%1000 / 100 / 100000.0;
+        pkTime.toTm(&buf);
+        int day = (buf.tm_year + 1900) * 10000 + (buf.tm_mon + 1) * 100 + buf.tm_mday;
+        time = time + buf.tm_hour + buf.tm_min / 100.0 + buf.tm_sec / 10000.0;
+        
+        mxSetField(result, 0, "tradingday", mxCreateDoubleScalar(day));
+        mxSetField(result, 0, "time", mxCreateDoubleScalar(time));
+        mxSetField(result, 0, "instrument", mxCreateString(instrument.c_str()));
+        mxSetField(result, 0, "o", mxCreateDoubleScalar( p["OpenPrice"].Double() ));
+        mxSetField(result, 0, "h", mxCreateDoubleScalar(p["HighestPrice"].Double()));
+        mxSetField(result, 0, "l", mxCreateDoubleScalar(p["LowestPrice"].Double()));
+        mxSetField(result, 0, "c", mxCreateDoubleScalar(p["LastPrice"].Double()));
+        mxSetField(result, 0, "v", mxCreateDoubleScalar(p["Volume"].Int()));
+        mxSetField(result, 0, "i", mxCreateDoubleScalar(p["OpenInterest"].Double()));
+        mxSetField(result, 0, "a1", mxCreateDoubleScalar(p["AskPrice1"].Double()));
+        mxSetField(result, 0, "b1", mxCreateDoubleScalar(p["BidPrice1"].Double()));
+        mxSetField(result, 0, "av1", mxCreateDoubleScalar(p["AskVolume1"].Int()));
+        mxSetField(result, 0, "bv1", mxCreateDoubleScalar(p["BidVolume1"].Int()));
+    }
+    return result;
 }
